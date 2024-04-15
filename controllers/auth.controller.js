@@ -19,7 +19,7 @@ import jwt from 'jsonwebtoken';
 //   }
 // };
 
-//login for users
+
 //login for users
 export const login = async (req, res, next) => {
   try {

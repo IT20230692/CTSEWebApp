@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
-//comment
 const addSchema = new Schema(
   {
     userId: {
