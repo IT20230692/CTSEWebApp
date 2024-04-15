@@ -22,7 +22,14 @@ const connect = async () => {
     }
 };
 
-app.use(cors());
+const corsOptions = {
+    origin: '*',
+    allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    methods: 'GET, POST, PUT, DELETE, OPTIONS',
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
