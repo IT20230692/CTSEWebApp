@@ -1,68 +1,88 @@
-// Import required modules and functions for testing
+// Login controller tests
 import { login } from '../controllers/auth.controller.js';
 import User from '../models/user.model.js';
-import createError from '../utils/createError.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import createError from '../utils/createError.js';
 
-// Mocking the request and response objects
-const req = {
-  body: {
-    username: 'testuser',
-    password: 'testpassword',
-  },
-};
+jest.mock('../models/user.model.js');
+jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
+jest.mock('../utils/createError.js', () => jest.fn().mockImplementation((status, message) => ({ status, message })));
 
+// Mocking Express response and next functions
 const res = {
+  json: jest.fn().mockReturnThis(),
   status: jest.fn().mockReturnThis(),
-  json: jest.fn(),
 };
-
 const next = jest.fn();
-
-// Mocking the User model function findOne
-jest.mock('../models/user.model.js', () => ({
-  findOne: jest.fn(),
-}));
-
-// Mocking the bcrypt.compareSync function
-jest.mock('bcrypt', () => ({
-  compareSync: jest.fn(),
-}));
-
-// Mocking the jwt.sign function
-jest.mock('jsonwebtoken', () => ({
-  sign: jest.fn(),
-}));
-
-describe('Auth Controller - Login', () => {
+describe('login', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks(); // Clears instances and calls to constructor and all methods
   });
 
-  it('should return 404 if user is not found', async () => {
-    User.findOne.mockResolvedValueOnce(null);
+  const req = {
+    body: {
+      username: 'testUser',
+      password: 'testPass'
+    }
+  };
+
+  it('should validate username and password are provided', async () => {
+    const reqMissingFields = {
+      body: {}
+    };
+
+    await login(reqMissingFields, res, next);
+
+    expect(next).toHaveBeenCalledWith({ status: 400, message: 'Username and password are required.' });
+  });
+
+  it('should return 404 if user not found', async () => {
+    User.findOne = jest.fn().mockResolvedValue(null);
 
     await login(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(createError(404, 'User not found!'));
+    expect(next).toHaveBeenCalledWith({ status: 404, message: 'User not found!' });
   });
 
   it('should return 400 if password is incorrect', async () => {
-    const mockUser = { _id: 'testid', username: 'testuser', password: 'hashedpassword' };
-    User.findOne.mockResolvedValueOnce(mockUser);
-    bcrypt.compareSync.mockReturnValueOnce(false);
+    User.findOne = jest.fn().mockResolvedValue({
+      _id: '123',
+      password: 'hashedPassword'
+    });
+    bcrypt.compare = jest.fn().mockResolvedValue(false);
 
     await login(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(createError(400, 'Wrong password or username!'));
+    expect(next).toHaveBeenCalledWith({ status: 400, message: 'Wrong password or username!' });
   });
 
-  it('should call next with error if an error occurs', async () => {
-    User.findOne.mockRejectedValueOnce('mock error');
+  it('should successfully log in and return a token and user info', async () => {
+    const userMock = {
+      _id: '123',
+      isSeller: false,
+      password: 'hashedPassword',
+      toObject: jest.fn(() => ({
+        _id: '123',
+        username: 'testUser',
+        isSeller: false
+      }))
+    };
+    User.findOne = jest.fn().mockResolvedValue(userMock);
+    bcrypt.compare = jest.fn().mockResolvedValue(true);
+    jwt.sign = jest.fn().mockReturnValue('fakeToken123');
 
     await login(req, res, next);
 
-    expect(next).toHaveBeenCalledWith('mock error');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      token: 'fakeToken123',
+      info: {
+        _id: '123',
+        username: 'testUser',
+        isSeller: false
+      }
+    });
   });
 });

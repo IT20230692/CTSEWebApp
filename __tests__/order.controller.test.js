@@ -1,60 +1,89 @@
-import { createOrder } from '../controllers/order.controller.js';
-import Order from '../models/order.model.js';
-import createError from '../utils/createError.js';
+// Order controller tests
+import { createOrder } from '../controllers/order.controller';
+import Order from '../models/order.model';
+import createError from '../utils/createError';
 
-// Mock the request and response objects
-const req = {
-  isSeller: false, // Set to false to simulate the scenario where the user is not a seller
-  userId: 'testUserId',
-  body: {
-    // Mock request body data
-    // You can modify this object based on your requirements
-    product: 'Test Product',
-    quantity: 2,
-    // Add any other properties required for creating an order
-  },
-};
+jest.mock('../models/order.model');
+jest.mock('../utils/createError', () => jest.fn().mockImplementation((status, message) => Error(`${status}: ${message}`)));
 
+// Mocking Express response and next functions
 const res = {
+  json: jest.fn().mockReturnThis(),
   status: jest.fn().mockReturnThis(),
-  json: jest.fn(),
+  send: jest.fn().mockReturnThis()
 };
-
 const next = jest.fn();
 
-// Mock the Order model function save
-jest.mock('../models/order.model.js', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-describe('Order Controller - createOrder', () => {
+describe('createOrder', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks(); // Clears instances and calls to constructor and all methods
   });
 
-  it('should create a new order if the user is not a seller', async () => {
-    // Mock the return value of Order.save function
-    const mockSavedOrder = {
-      _id: 'testOrderId',
-      userId: 'testUserId',
-      product: 'Test Product',
-      quantity: 2,
-      // Add any other properties returned after saving the order
+  it('should create an order successfully for a non-seller user', async () => {
+    const req = {
+      isSeller: false,
+      userId: 'user123',
+      body: {
+        productIds: ['product123', 'product456'],
+        quantity: 2,
+        total: 100
+      }
     };
-    Order.mockImplementationOnce(() => mockSavedOrder);
+
+    Order.mockImplementation(() => ({
+      save: jest.fn().mockResolvedValue({
+        _id: 'order123',
+        ...req.body,
+        userId: req.userId
+      })
+    }));
 
     await createOrder(req, res, next);
 
-    expect(Order).toHaveBeenCalledTimes(1); // Ensure Order constructor is called
-    expect(Order).toHaveBeenCalledWith({
-      userId: 'testUserId',
-      product: 'Test Product',
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({
+      _id: 'order123',
+      productIds: ['product123', 'product456'],
       quantity: 2,
-      // Add any other properties required for creating an order
+      total: 100,
+      userId: 'user123'
     });
+  });
 
-    // expect(res.json).toHaveBeenCalledWith(mockSavedOrder);
+  it('should return an error if a seller tries to create an order', async () => {
+    const req = {
+      isSeller: true,
+      userId: 'seller123',
+      body: {
+        productIds: ['product123'],
+        quantity: 1,
+        total: 50
+      }
+    };
+
+    await createOrder(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(new Error('403: Only users can create Order option!'));
+  });
+
+  it('should handle errors and pass them to the next middleware', async () => {
+    const req = {
+      isSeller: false,
+      userId: 'user123',
+      body: {
+        productIds: ['product123', 'product456'],
+        quantity: 2,
+        total: 100
+      }
+    };
+
+    const error = new Error('Database failure');
+    Order.mockImplementation(() => ({
+      save: jest.fn().mockRejectedValue(error)
+    }));
+
+    await createOrder(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(error);
   });
 });
-   
