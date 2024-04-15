@@ -20,8 +20,6 @@ export const createReview = async (req, res, next) => {
       return next(createError(403, 'You have already created a review for this add!'));
     }
 
-    //TODO: Check if the user purchased the add. (You can implement this part)
-
     // Create a new review
     const newReview = new Review({
       userId: req.userId,
