@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:14
 
 # Create a non-root user to run the application
 RUN useradd -r -u 1001 appuser
