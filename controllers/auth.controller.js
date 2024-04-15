@@ -2,10 +2,23 @@ import User from '../models/user.model.js';
 import createError from '../utils/createError.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import getSecret from '../config/secrets.js';
 
-//user registration
+// retrieve JWT key
+const connect = async () => {
+  try {
+    const secret = await getSecret();
+    const JWT_KEY = secret.JWT_KEY;
+    return JWT_KEY;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// User registration
 export const register = async (req, res, next) => {
   try {
+    // Connect to retrieve JWT key
     const hash = bcrypt.hashSync(req.body.password, 5);
     const newUser = new User({
       ...req.body,
@@ -13,14 +26,13 @@ export const register = async (req, res, next) => {
     });
 
     await newUser.save();
-    res.status(201).send('User has been created Successfully....');
+    res.status(201).send('User has been created successfully.');
   } catch (err) {
     next(err);
   }
 };
 
-
-//login for users
+// User login
 export const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -43,14 +55,14 @@ export const login = async (req, res, next) => {
     if (!isCorrect) {
       return next(createError(400, 'Wrong password or username!'));
     }
-
+    const JWT_KEY = await connect();
     // Generate JWT token
     const token = jwt.sign(
       {
         id: user._id,
         isSeller: user.isSeller,
       },
-      process.env.JWT_KEY
+      JWT_KEY
     );
 
     // Respond with token and user info
@@ -60,3 +72,5 @@ export const login = async (req, res, next) => {
     next(err);
   }
 };
+
+

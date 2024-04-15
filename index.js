@@ -7,6 +7,7 @@ import reviewRoute from './routes/review.route.js';
 import orderRoute from './routes/order.route.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import getSecret from './config/secrets.js';
 
 const app = express();
 dotenv.config();
@@ -15,7 +16,10 @@ mongoose.set('strictQuery', true);
 
 const connect = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URL);
+        // Retrieve secret
+        const secret = await getSecret();
+        // Use the secret to connect to MongoDB
+        await mongoose.connect(secret.MONGO_URL);
         console.log('DB Connected successfully!');
     } catch (error) {
         console.log(error);
@@ -23,10 +27,10 @@ const connect = async () => {
 };
 
 const corsOptions = {
-    origin: ['http://localhost:5000/products'], // Whitelist trusted domains
+    origin: ['http://localhost:5000/products'],
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     methods: 'GET, POST, PUT, DELETE, OPTIONS',
-    credentials: true // Use with caution, ensure proper management of credentials
+    credentials: true
 };
 
 app.use(cors(corsOptions));
@@ -38,11 +42,9 @@ app.use('/auth', authRoute);
 app.use('/review', reviewRoute);
 app.use('/order', orderRoute);
 
-
 app.use((err, req, res, next) => {
     const errorStatus = err.status || 500;
     const errorMessage = err.message || 'Something went wrong!';
-
     return res.status(errorStatus).send(errorMessage);
 });
 
