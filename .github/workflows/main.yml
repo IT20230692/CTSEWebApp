@@ -21,6 +21,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Add this step to install @babel/preset-env
+      - name: Install Babel preset-env
+        run: npm install --save-dev @babel/preset-env
+
       - name: Run tests
         run: npm test
 
