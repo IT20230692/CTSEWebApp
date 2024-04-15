@@ -1,6 +1,5 @@
 import { createProduct, deleteProduct, getProduct, getProducts, updateProducts } from '../controllers/product.controller';
 import Add from '../models/add.model';
-import createError from '../utils/createError';
 
 jest.mock('../models/add.model');
 jest.mock('../utils/createError', () => jest.fn().mockImplementation((status, message) => Error(`${status}: ${message}`)));

@@ -3,7 +3,6 @@ import { login } from '../controllers/auth.controller.js';
 import User from '../models/user.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import createError from '../utils/createError.js';
 
 jest.mock('../models/user.model.js');
 jest.mock('bcrypt');

@@ -1,7 +1,6 @@
 // Order controller tests
 import { createOrder } from '../controllers/order.controller';
 import Order from '../models/order.model';
-import createError from '../utils/createError';
 
 jest.mock('../models/order.model');
 jest.mock('../utils/createError', () => jest.fn().mockImplementation((status, message) => Error(`${status}: ${message}`)));
