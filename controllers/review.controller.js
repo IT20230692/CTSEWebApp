@@ -4,39 +4,47 @@ import Add from '../models/add.model.js';
 
 export const createReview = async (req, res, next) => {
   console.log('create review');
-  if (req.isSeller)
+  
+  // Check if the user is a seller
+  if (req.isSeller) {
     return next(createError(403, "Sellers can't create a review!"));
+  }
 
-  const newReview = new Review({
-    userId: req.userId,
-    addId: req.body.addId,
-    desc: req.body.desc,
-    star: req.body.star,
-  });
+  // Extract data from request body
+  const { addId, desc, star } = req.body;
 
   try {
-    const review = await Review.findOne({
-      addId: req.body.addId,
+    // Check if the user has already created a review for this add
+    const existingReview = await Review.findOne({ addId, userId: req.userId });
+    if (existingReview) {
+      return next(createError(403, 'You have already created a review for this add!'));
+    }
+
+    //TODO: Check if the user purchased the add. (You can implement this part)
+
+    // Create a new review
+    const newReview = new Review({
       userId: req.userId,
+      addId,
+      desc,
+      star,
     });
 
-    if (review)
-      return next(
-        createError(403, 'You have already created a review for this add!')      
-      );
-
-    //TODO: check if the user purchased the add.
-
+    // Save the review
     const savedReview = await newReview.save();
 
-    await Add.findByIdAndUpdate(req.body.addId, {
-      $inc: { totalStars: req.body.star, starNumber: 1 },
+    // Update the corresponding Add document with the new review data
+    await Add.findByIdAndUpdate(addId, {
+      $inc: { totalStars: star, starNumber: 1 },
     });
+
+    // Respond with the saved review
     res.status(201).send(savedReview);
   } catch (err) {
     next(err);
   }
 };
+
 
 export const getReviews = async (req, res, next) => {
   try {

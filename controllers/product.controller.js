@@ -44,27 +44,40 @@ export const getProduct = async (req, res, next) => {
   }
 };
 
-//get ads acoording to filtering
+//get ads according to filtering
 export const getProducts = async (req, res, next) => {
   const q = req.query;
-  const filters = {
-    ...(q.userId && { userId: q.userId }),
-    ...(q.cat && { cat: q.cat }),
-    ...((q.min || q.max) && {
-      price: {
-        ...(q.min && { $gt: q.min }),
-        ...(q.max && { $lt: q.max }),
-      },
-    }),
-    ...(q.search && { title: { $regex: q.search, $options: 'i' } }),
+
+  // Define allowed query parameters and their corresponding database fields
+  const allowedFilters = {
+    userId: 'userId',
+    cat: 'cat',
+    min: 'price',
+    max: 'price',
+    search: 'title',
   };
+
+  // Validate and sanitize query parameters
+  const filters = {};
+  Object.keys(q).forEach(key => {
+    if (allowedFilters.hasOwnProperty(key)) {
+      if (key === 'search') {
+        filters[allowedFilters[key]] = { $regex: new RegExp(q[key], 'i') };
+      } else {
+        filters[allowedFilters[key]] = q[key];
+      }
+    }
+  });
+
   try {
-    const add = await Add.find(filters).sort({ [q.sort]: -1 });
-    res.status(200).send(add);
+    // Execute the database query with validated and sanitized filters
+    const ads = await Add.find(filters).sort({ [q.sort]: -1 });
+    res.status(200).send(ads);
   } catch (err) {
     next(err);
   }
 };
+
 
 
 //create update selected product

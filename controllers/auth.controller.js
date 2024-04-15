@@ -20,16 +20,31 @@ import jwt from 'jsonwebtoken';
 // };
 
 //login for users
+//login for users
 export const login = async (req, res, next) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
+    const { username, password } = req.body;
 
-    if (!user) return next(createError(404, 'User not found!'));
+    // Validate input
+    if (!username || !password) {
+      return next(createError(400, 'Username and password are required.'));
+    }
 
-    const isCorrect = bcrypt.compareSync(req.body.password, user.password);
-    if (!isCorrect)
+    // Find user by username
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return next(createError(404, 'User not found!'));
+    }
+
+    // Compare passwords
+    const isCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isCorrect) {
       return next(createError(400, 'Wrong password or username!'));
+    }
 
+    // Generate JWT token
     const token = jwt.sign(
       {
         id: user._id,
@@ -37,10 +52,10 @@ export const login = async (req, res, next) => {
       },
       process.env.JWT_KEY
     );
-    console.log(req.body.username)
 
-    const { password, ...info } = user._doc;
-    res.status(200).json({ token, info });
+    // Respond with token and user info
+    const { password: userPassword, ...userInfo } = user.toObject(); // Exclude password from user info
+    res.status(200).json({ token, info: userInfo });
   } catch (err) {
     next(err);
   }
