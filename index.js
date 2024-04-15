@@ -23,10 +23,10 @@ const connect = async () => {
 };
 
 const corsOptions = {
-    origin: '*',
+    origin: ['http://trusted-domain1.com', 'http://trusted-domain2.com'], // Whitelist trusted domains
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     methods: 'GET, POST, PUT, DELETE, OPTIONS',
-    credentials: true
+    credentials: true // Use with caution, ensure proper management of credentials
 };
 
 app.use(cors(corsOptions));
