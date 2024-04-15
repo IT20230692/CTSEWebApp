@@ -16,16 +16,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: '16'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Install Jest
-        run: npm install --save-dev jest
-
-      - name: Provide execute permission to Jest
-        run: chmod +x node_modules/.bin/jest
+      # Add this step to install @babel/preset-env
+      - name: Install Babel preset-env
+        run: npm install --save-dev @babel/preset-env
 
       - name: Run tests
         run: npm test
@@ -48,7 +46,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: '16'
 
       - name: Install dependencies
         run: npm install

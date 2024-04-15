@@ -2,10 +2,11 @@
   "name": "add-server",
   "version": "1.0.0",
   "description": "",
+  
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test": "npx jest"
+    "test": "jest"  
   },
   "keywords": [],
   "author": "",
