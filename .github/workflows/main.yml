@@ -62,6 +62,7 @@ jobs:
           script: |
             cd /home/ec2-user/ctseproject/CTSEWebApp
             git pull origin main
+          options: '-v'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
