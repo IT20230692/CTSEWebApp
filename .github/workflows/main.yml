@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main  # Adjust this branch name if you're using a different default branch
+  pull_request:
+    branches: []
 
 jobs:
   build:
