@@ -76,5 +76,5 @@ jobs:
 
       - name: Deploy to ECS
         run: |
-          aws ecs update-service --cluster ecs-cluster --service your-service-name --force-new-deployment
+          aws ecs update-service --cluster ecs-cluster --service ecs-service --force-new-deployment
     
