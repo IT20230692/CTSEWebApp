@@ -1,16 +1,32 @@
 import AWS from 'aws-sdk';
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
+// Get region from environment variable or set a default value
+const region = process.env.AWS_REGION;
+
+// Logging the region for verification
+console.log("Region:", region);
+
+// Update AWS SDK configuration with credentials from environment variables
 AWS.config.update({
-    accessKeyId: 'YOUR_ACCESS_KEY_ID',
-    secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
-    region: 'YOUR_REGION'
+    region: region,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
 });
-const secretsManager = new AWS.SecretsManager();
+
+const secretsManager = new SecretsManagerClient({ region: region });
 
 const getSecret = async () => {
+    const secretId = process.env.SECRET_ID; // Get SecretId from environment variable
+    if (!secretId) {
+        throw new Error("SecretId not provided in environment variables.");
+    }
+
     try {
-        const data = await secretsManager.getSecretValue({ SecretId: 'SecretId' }).promise();
+        const command = new GetSecretValueCommand({ SecretId: secretId });
+        const data = await secretsManager.send(command);
         const secret = JSON.parse(data.SecretString);
         return secret;
     } catch (err) {
@@ -20,4 +36,3 @@ const getSecret = async () => {
 };
 
 export default getSecret;
-
