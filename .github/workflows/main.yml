@@ -3,7 +3,9 @@ name: CI/CD
 on:
   push:
     branches:
-      - main  # Adjust this branch name if you're using a different default branch
+      - main  # Adjust this branch name if you're using a different default branch(main/ master)
+  pull_request:
+    branches: []
 
 jobs:
   build:
