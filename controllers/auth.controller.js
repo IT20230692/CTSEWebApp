@@ -51,6 +51,7 @@ export const login = async (req, res, next) => {
 
     // Compare passwords
     const isCorrect = await bcrypt.compare(password, user.password);
+    console.log("testing github action,",isCorrect);
 
     if (!isCorrect) {
       return next(createError(400, 'Wrong password or username!'));
