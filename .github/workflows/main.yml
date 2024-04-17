@@ -8,7 +8,7 @@ on:
     branches: []
 
 jobs:
-  build:
+  Continuous_Integration:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,9 +36,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t my-node-app .
 
-  deploy:
+  Continuous_Deployment:
     runs-on: ubuntu-latest
-    needs: build
+    needs: Continuous_Integration
     if: github.ref == 'refs/heads/main'  # Only deploy when pushing to main branch
 
     steps:
