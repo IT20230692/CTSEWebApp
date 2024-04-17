@@ -34,7 +34,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build Docker image
-        run: docker build -t my-node-app .
+        run: docker build -t ctsewebapp-ec2 .
 
   Continuous_Deployment:
     runs-on: ubuntu-latest
@@ -53,6 +53,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: SSH into EC2 and update files
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ec2-user/ctseproject/CTSEWebApp
+            git pull origin main
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -61,5 +71,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: chandima99/ctsewebapp-ec2:latest
+          repository: chandima99/ctsewebapp-ec2
           tags: latest
+
+      - name: SSH into EC2 and restart Docker containers
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /path/to/your/ec2/project
+            docker-compose down
+            docker-compose up -d
