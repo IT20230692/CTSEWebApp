@@ -37,7 +37,7 @@
 # EXPOSE 5000
 
 
-FROM node:14
+FROM node:20
 
 WORKDIR /app
 
@@ -61,3 +61,4 @@ EXPOSE 5000
 
 # Start the application
 CMD ["npm", "start"]
+
