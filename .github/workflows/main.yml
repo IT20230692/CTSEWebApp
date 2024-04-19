@@ -64,6 +64,24 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --platform linux/amd64 .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      - name: SSH into EC2 instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Use the private key for SSH authentication
+          port: 22  # Default SSH port
+          script: |
+            docker pull ${{ secrets.ECR_REGISTRY }}/ctseecr-repo:latest
+            docker stop sharp_goodall || true
+            docker rm sharp_goodall || true
+            docker run -d --name ctsewebapp -p 5000:5000 \
+              -e AWS_REGION=${{ secrets.AWS_REGION }} \
+              -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+              -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+              -e SECRET_ID=${{ secrets.SECRET_ID }} \
+              ${{ secrets.ECR_REGISTRY }}/ctseecr-repo:latest
+        
       - name: Deploy to ECS
         run: |
           aws ecs update-service --cluster ecs-cluster --service ecs-service --force-new-deployment
