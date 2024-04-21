@@ -20,6 +20,7 @@ const connect = async () => {
         const secret = await getSecret();
         // Use the secret to connect to MongoDB
         await mongoose.connect(secret.MONGO_URL);
+        console.log("hey hey mongoo : ", secret)
         console.log('DB Connected successfully!');
     } catch (error) {
         console.log(error);
