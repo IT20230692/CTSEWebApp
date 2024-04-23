@@ -2,6 +2,7 @@
 import { createOrder } from '../controllers/order.controller';
 import Order from '../models/order.model';
 
+// Mocking dependencies
 jest.mock('../models/order.model');
 jest.mock('../utils/createError', () => jest.fn().mockImplementation((status, message) => Error(`${status}: ${message}`)));
 
@@ -29,6 +30,7 @@ describe('createOrder', () => {
       }
     };
 
+    // Mocking Order model instance and its save method
     Order.mockImplementation(() => ({
       save: jest.fn().mockResolvedValue({
         _id: 'order123',
@@ -39,6 +41,7 @@ describe('createOrder', () => {
 
     await createOrder(req, res, next);
 
+    // Expectations for successful order creation
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       _id: 'order123',
@@ -62,6 +65,7 @@ describe('createOrder', () => {
 
     await createOrder(req, res, next);
 
+    // Expectation for error when seller tries to create an order
     expect(next).toHaveBeenCalledWith(new Error('403: Only users can create Order option!'));
   });
 
@@ -77,12 +81,15 @@ describe('createOrder', () => {
     };
 
     const error = new Error('Database failure');
+
+    // Mocking Order model instance and its save method to throw an error
     Order.mockImplementation(() => ({
       save: jest.fn().mockRejectedValue(error)
     }));
 
     await createOrder(req, res, next);
 
+    // Expectation for error handling
     expect(next).toHaveBeenCalledWith(error);
   });
 });
