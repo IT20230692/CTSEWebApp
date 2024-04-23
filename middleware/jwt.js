@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import createError from '../utils/createError.js';
 import getSecret from '../config/secrets.js';
 
-// retrieve JWT key
+// Function to retrieve JWT key from secrets
 const connect = async () => {
   try {
     const secret = await getSecret();
@@ -19,17 +19,20 @@ export const verifyToken = async (req, res, next) => {
     // Connect to retrieve JWT key
     const JWT_KEY = await connect();
 
-    // Using optional chaining to simplify the check
+    // Extract token from authorization header
     const token = req.headers.authorization?.split(' ')[1];
 
+    // Check if token exists
     if (!token) {
       return next(createError(401, 'You are not authenticated!'));
     }
 
+    // Verify token
     jwt.verify(token, JWT_KEY, (err, payload) => {
       if (err) {
         return next(createError(403, 'Token is not valid!'));
       }
+      // Attach user ID and seller status to request object
       req.userId = payload.id;
       req.isSeller = payload.isSeller;
       next();

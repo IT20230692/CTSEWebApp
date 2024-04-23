@@ -16,8 +16,10 @@ AWS.config.update({
     }
 });
 
+// Create a Secrets Manager client
 const secretsManager = new SecretsManagerClient({ region: region });
 
+// Function to retrieve secrets from AWS Secrets Manager
 const getSecret = async () => {
     const secretId = process.env.SECRET_ID; // Get SecretId from environment variable
     if (!secretId) {
@@ -25,8 +27,11 @@ const getSecret = async () => {
     }
 
     try {
+        // Create GetSecretValueCommand to retrieve secret
         const command = new GetSecretValueCommand({ SecretId: secretId });
+        // Send command to Secrets Manager
         const data = await secretsManager.send(command);
+        // Parse the secret string from JSON format
         const secret = JSON.parse(data.SecretString);
         return secret;
     } catch (err) {
